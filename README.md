@@ -58,7 +58,7 @@
 | `kit/common.py` | 读配置、调用 easyeda（重试/超时）、单位换算、PCB 快照 |
 | `kit/sch/` | 原理图：规格检查、逐页建图、读存盘文件逐脚核对、删件 |
 | `kit/pcb/` | 板框和孔、设计规则 + 网络线宽、按坐标表摆放、按快照复位；`guard.py`：给 auto-place / route-short / beautify 加快照、读回和自动回滚，按快照恢复走线 |
-| `kit/route/` | DSN 预处理、Freerouting 多版本并行、SES 连通检查、后处理、导入、铺地、缝合、连通、地面评分、出图 |
+| `kit/route/` | DSN 预处理、Freerouting 多版本并行、成束布线（`route_bundle.py`，低速板「线成束、地成片」）、SES 检查与拉直、后处理、导入、铺地、缝合、GND 孤岛补接、连通、地面评分、出图 |
 | `kit/fab/` | 出板导出（Gerber/钻孔/BOM/坐标/IPC-356 + 工程备份）和出板检查 |
 | `kit/backup.py`、`kit/recover/` | 工程备份；工作区丢失后从 AI 会话记录恢复文件 |
 | `tools/check_env.py` | 环境自检 |

@@ -174,3 +174,36 @@ class Ses:
             for v in children(nb, 'via'):
                 self.vias.append(dict(net=netname, x=float(v[2]) * self.unit_mm,
                                       y=float(v[3]) * self.unit_mm, padstack=v[1]))
+
+
+def write_ses(template, out_path, wires, vias):
+    """Write an SES: `template`'s header / library with its whole (network_out ...) replaced by wires / vias.
+
+    wires: dicts net, layer, width (mm), pts [(x, y) mm]; vias: dicts net, x, y (mm), padstack. Units follow the
+    template's resolution, so the result imports wherever the template did."""
+    import collections
+    text = open(template, encoding='utf-8').read()
+    unit = Ses(template).unit_mm
+    i0 = text.index('(network_out')
+    depth, j = 0, i0
+    while True:
+        depth += {'(': 1, ')': -1}.get(text[j], 0)
+        if depth == 0:
+            break
+        j += 1
+    nets = collections.OrderedDict()
+    for w in wires:
+        nets.setdefault(w['net'], ([], []))[0].append(w)
+    for v in vias:
+        nets.setdefault(v['net'], ([], []))[1].append(v)
+    out = ['(network_out']
+    for name, (wl, vl) in nets.items():
+        out.append('  (net %s' % (name if name.replace('_', '').isalnum() else '"%s"' % name))
+        for w in wl:
+            out.append('    (wire (path %s %d %s))' % (w['layer'], int(round(w['width'] / unit)), ' '.join(
+                '%d %d' % (int(round(x / unit)), int(round(y / unit))) for x, y in w['pts'])))
+        for v in vl:
+            out.append('    (via %s %d %d)' % (v.get('padstack', 'via0'), int(round(v['x'] / unit)), int(round(v['y'] / unit))))
+        out.append('  )')
+    out.append(')')
+    open(out_path, 'w', encoding='utf-8', newline='\n').write(text[:i0] + '\n'.join(out) + text[j + 1:])

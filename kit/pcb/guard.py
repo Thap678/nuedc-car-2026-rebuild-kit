@@ -121,7 +121,12 @@ def canon(items):
     are compared merged. Each returned item carries '_ids', the primitive ids it stands for."""
     out, groups = [], collections.defaultdict(list)
     for kind, it in items:
-        if kind == 'lines':
+        if kind == 'lines' and math.dist((it['startX'], it['startY']), (it['endX'], it['endY'])) < 0.5:
+            # near-zero-length track: never let it join the merge - as a "point" it lies on every line through
+            # it and glued a horizontal and a vertical run into one line, so restore-copper ripped the vertical
+            # run up, never redrew it and still reported the net as restored (5V_MAIN, 2026-11-07)
+            out.append((kind, dict(it, _ids=[it.get('primitiveId')])))
+        elif kind == 'lines':
             groups[(it.get('net'), it.get('layer'), round(float(it.get('lineWidth', 0)), 1))].append(it)
         else:
             out.append((kind, dict(it, _ids=[it.get('primitiveId')])))
